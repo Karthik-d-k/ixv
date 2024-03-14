@@ -14,14 +14,22 @@ dbuild: clear
 rbuild: clear
     cargo build --release
 
-# Release build
-run args='': clear
+# Debug build run
+drun args='': clear
+    cargo run --quiet -- {{args}}
+
+# Release build run
+rrun args='': clear
     cargo run --release --quiet -- {{args}}
 
 # Print library size
 size: clear dbuild rbuild
     @ls -sh ./target/debug/ixv
     @ls -sh ./target/release/ixv
+
+# Run Tests
+test: clear
+	cargo test --release -- --nocapture
 
 # Clean target
 clean: clear
