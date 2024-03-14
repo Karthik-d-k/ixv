@@ -1,0 +1,15 @@
+[package]
+name = "ixv"
+version = "0.1.0"
+edition = "2021"
+description = "A CLI application for verifying intel hex file."
+authors = ["Karthik D K <karthikdk1998@gmail.com>"]
+
+[profile.release]
+lto = true
+panic = "abort"
+codegen-units = 1
+
+[dependencies]
+clap = { version = "4.*", features = ["derive"] }
+indicatif = "0.17.*"
