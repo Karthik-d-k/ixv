@@ -15,8 +15,8 @@ rbuild: clear
     cargo build --release
 
 # Release build
-run: clear
-    cargo run --release --quiet
+run args='': clear
+    cargo run --release --quiet -- {{args}}
 
 # Print library size
 size: clear dbuild rbuild
