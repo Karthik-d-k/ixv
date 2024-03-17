@@ -3,7 +3,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader, Lines};
 use std::path::Path;
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 
 fn count_lines(path: &Path) -> Result<u64> {
     let mut lines = BufReader::new(File::open(path)?).lines();
@@ -14,7 +14,7 @@ fn count_lines(path: &Path) -> Result<u64> {
 }
 
 fn read_lines(filename: &Path) -> Result<Lines<BufReader<File>>> {
-    let file = File::open(filename).context("Error opening file")?;
+    let file = File::open(filename)?;
     Ok(BufReader::new(file).lines())
 }
 
@@ -104,7 +104,7 @@ mod tests {
     fn test_eof_hex() -> Result<()> {
         let hex_file = PathBuf::from(r"./test/eof.hex");
 
-        let _ = verify_checksum_hexfile(&hex_file);
+        let _ = verify_checksum_hexfile(&hex_file, false);
 
         Ok(())
     }
