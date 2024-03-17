@@ -1,6 +1,6 @@
 [package]
 name = "ixv"
-version = "0.1.0"
+version = "0.0.1"
 edition = "2021"
 description = "A CLI application for verifying intel hex file."
 authors = ["Karthik D K <karthikdk1998@gmail.com>"]
@@ -12,5 +12,5 @@ codegen-units = 1
 
 [dependencies]
 anyhow = "1.*"
-clap = { version = "4.*", features = ["derive"] }
+clap = { version = "4.*", features = ["cargo"] }
 indicatif = "*"

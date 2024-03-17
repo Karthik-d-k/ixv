@@ -1,18 +1,9 @@
 use std::fmt;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Lines};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use anyhow::{Context, Result};
-use clap::Parser;
-use indicatif::ProgressBar;
-
-#[derive(Parser)]
-#[command(author, version, about, long_about = None)]
-struct Args {
-    /// Path to an hex file
-    hex_file: PathBuf,
-}
 
 fn count_lines(path: &Path) -> Result<u64> {
     let mut lines = BufReader::new(File::open(path)?).lines();
@@ -48,10 +39,10 @@ fn checksum_record(hex_record: &str) -> u8 {
     (sum & 0xFF) as u8
 }
 
-fn verify_checksum_hexfile(hex_file: &Path) -> Result<()> {
+fn verify_checksum_hexfile(hex_file: &Path, use_pb: bool) -> Result<()> {
     let num_lines = count_lines(hex_file)?;
-    let pb = ProgressBar::new(num_lines);
     let mut failed_records: Vec<(usize, String)> = Vec::new();
+    let pb = indicatif::ProgressBar::new(num_lines);
 
     if let Ok(lines) = read_lines(hex_file) {
         for (line_no, hex_record) in lines.map_while(Result::ok).enumerate() {
@@ -59,11 +50,16 @@ fn verify_checksum_hexfile(hex_file: &Path) -> Result<()> {
             if checksum != 0u8 {
                 failed_records.push((line_no + 1, hex_record));
             }
-            pb.inc(1);
+
+            if use_pb {
+                pb.inc(1)
+            };
         }
     }
 
-    pb.finish();
+    if use_pb {
+        pb.finish()
+    };
 
     if !failed_records.is_empty() {
         eprintln!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
@@ -92,17 +88,16 @@ impl fmt::Display for FailedRecordsTable {
     }
 }
 
-pub fn run() -> Result<()> {
-    let args = Args::parse();
-    let hex_file = args.hex_file;
-
-    verify_checksum_hexfile(&hex_file)?;
+pub fn run(hex_file: &Path, use_pb: bool) -> Result<()> {
+    verify_checksum_hexfile(hex_file, use_pb)?;
 
     Ok(())
 }
 
 #[cfg(test)]
 mod tests {
+    use std::path::PathBuf;
+
     use super::*;
 
     #[test]
