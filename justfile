@@ -16,11 +16,11 @@ rbuild: clear
 
 # Debug build run
 drun args='': clear
-    cargo run --quiet -- {{args}}
+    cargo run -- {{args}}
 
 # Release build run
 rrun args='': clear
-    cargo run --release --quiet -- {{args}}
+    cargo run --release -- {{args}}
 
 # Print library size
 size: clear dbuild rbuild

@@ -1,9 +1,11 @@
+use std::fmt;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Lines};
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 use clap::Parser;
+use indicatif::ProgressBar;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -12,10 +14,15 @@ struct Args {
     hex_file: PathBuf,
 }
 
-fn read_lines<P>(filename: P) -> Result<Lines<BufReader<File>>>
-where
-    P: AsRef<Path>,
-{
+fn count_lines(path: &Path) -> Result<u64> {
+    let mut lines = BufReader::new(File::open(path)?).lines();
+
+    let count = lines.try_fold(0, |acc, line| line.map(|_| acc + 1));
+
+    Ok(count?)
+}
+
+fn read_lines(filename: &Path) -> Result<Lines<BufReader<File>>> {
     let file = File::open(filename).context("Error opening file")?;
     Ok(BufReader::new(file).lines())
 }
@@ -41,19 +48,48 @@ fn checksum_record(hex_record: &str) -> u8 {
     (sum & 0xFF) as u8
 }
 
-fn verify_checksum_hexfile(hex_file: &PathBuf) -> Result<()> {
+fn verify_checksum_hexfile(hex_file: &Path) -> Result<()> {
+    let num_lines = count_lines(hex_file)?;
+    let pb = ProgressBar::new(num_lines);
+    let mut failed_records: Vec<(usize, String)> = Vec::new();
+
     if let Ok(lines) = read_lines(hex_file) {
         for (line_no, hex_record) in lines.map_while(Result::ok).enumerate() {
             let checksum = checksum_record(&hex_record);
             if checksum != 0u8 {
-                eprintln!("CHECKSUM ERROR :(");
-                eprintln!("[line]: hex_record");
-                eprintln!("[{:^4}]: {}", line_no + 1, hex_record);
+                failed_records.push((line_no + 1, hex_record));
             }
+            pb.inc(1);
         }
     }
 
+    pb.finish();
+
+    if !failed_records.is_empty() {
+        eprintln!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+        eprintln!("CHECKSUM mismatch in the following hex records:");
+        eprintln!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+        let table = FailedRecordsTable(failed_records);
+        eprintln!("{}", table);
+    }
+
     Ok(())
+}
+
+struct FailedRecordsTable(Vec<(usize, String)>);
+
+impl fmt::Display for FailedRecordsTable {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut table = String::new();
+        table.push_str(&format!("{:<8} | {:<}\n", "Line No", "Hex Record"));
+        table.push_str(&format!("{:<8} | {:<}\n", "-------", "----------"));
+
+        for (line_no, hex_record) in &self.0 {
+            table.push_str(&format!("{:<8} | {:<}\n", line_no, hex_record));
+        }
+
+        write!(f, "{}", table)
+    }
 }
 
 pub fn run() -> Result<()> {

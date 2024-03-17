@@ -6,6 +6,4 @@ fn main() {
 
         process::exit(1);
     }
-
-    println!("Checksum verification successfull");
 }

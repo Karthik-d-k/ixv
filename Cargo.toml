@@ -11,5 +11,6 @@ panic = "abort"
 codegen-units = 1
 
 [dependencies]
-anyhow = "1.0.81"
+anyhow = "1.*"
 clap = { version = "4.*", features = ["derive"] }
+indicatif = "*"
