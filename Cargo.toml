@@ -28,7 +28,7 @@ lto = "thin"
 [dependencies]
 anyhow = "1.*"
 clap = { version = "4.*", features = ["derive"] }
-indicatif = "*"
+indicatif = "0.*"
 
 # Config for 'cargo dist'
 [workspace.metadata.dist]
