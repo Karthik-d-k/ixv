@@ -1,9 +1,8 @@
+use anyhow::Result;
 use std::fmt;
 use std::fs::File;
-use std::io::{BufRead, BufReader, Lines};
+use std::io::{BufRead, BufReader};
 use std::path::Path;
-
-use anyhow::Result;
 
 fn count_lines(path: &Path) -> Result<u64> {
     let mut lines = BufReader::new(File::open(path)?).lines();
@@ -11,11 +10,6 @@ fn count_lines(path: &Path) -> Result<u64> {
     let count = lines.try_fold(0, |acc, line| line.map(|_| acc + 1));
 
     Ok(count?)
-}
-
-fn read_lines(filename: &Path) -> Result<Lines<BufReader<File>>> {
-    let file = File::open(filename)?;
-    Ok(BufReader::new(file).lines())
 }
 
 fn checksum_record(hex_record: &str) -> u8 {
@@ -39,37 +33,31 @@ fn checksum_record(hex_record: &str) -> u8 {
     (sum & 0xFF) as u8
 }
 
-fn verify_checksum_hexfile(hex_file: &Path, use_pb: bool) -> Result<()> {
+fn verify_checksum_hexfile(hex_file: &Path, use_pb: bool) -> Result<Vec<(usize, String)>> {
     let num_lines = count_lines(hex_file)?;
     let mut failed_records: Vec<(usize, String)> = Vec::new();
     let pb = indicatif::ProgressBar::new(num_lines);
 
-    if let Ok(lines) = read_lines(hex_file) {
-        for (line_no, hex_record) in lines.map_while(Result::ok).enumerate() {
-            let checksum = checksum_record(&hex_record);
-            if checksum != 0u8 {
-                failed_records.push((line_no + 1, hex_record));
-            }
+    let file = File::open(hex_file)?;
+    let lines = BufReader::new(file).lines();
 
-            if use_pb {
-                pb.inc(1)
-            };
+    for (line_no, hex_record) in lines.enumerate() {
+        let hex_record = hex_record?;
+        let checksum = checksum_record(&hex_record);
+        if checksum != 0u8 {
+            failed_records.push((line_no + 1, hex_record));
         }
+
+        if use_pb {
+            pb.inc(1)
+        };
     }
 
     if use_pb {
         pb.finish()
     };
 
-    if !failed_records.is_empty() {
-        eprintln!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-        eprintln!("CHECKSUM mismatch in the following hex records:");
-        eprintln!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-        let table = FailedRecordsTable(failed_records);
-        eprintln!("{}", table);
-    }
-
-    Ok(())
+    Ok(failed_records)
 }
 
 struct FailedRecordsTable(Vec<(usize, String)>);
@@ -88,8 +76,16 @@ impl fmt::Display for FailedRecordsTable {
     }
 }
 
-pub fn run(hex_file: &Path, use_pb: bool) -> Result<()> {
-    verify_checksum_hexfile(hex_file, use_pb)?;
+pub fn run(hex_file: &Path, pb: bool) -> Result<()> {
+    let failed_records = verify_checksum_hexfile(hex_file, pb)?;
+
+    if !failed_records.is_empty() {
+        eprintln!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+        eprintln!("CHECKSUM mismatch in the following hex records:");
+        eprintln!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+        let table = FailedRecordsTable(failed_records);
+        eprintln!("{}", table);
+    }
 
     Ok(())
 }
@@ -102,9 +98,10 @@ mod tests {
 
     #[test]
     fn test_eof_hex() -> Result<()> {
-        let hex_file = PathBuf::from(r"./test/eof.hex");
+        let hex_file = PathBuf::from(r"./src/test/eof.hex");
 
-        let _ = verify_checksum_hexfile(&hex_file, false);
+        let failed_records = verify_checksum_hexfile(&hex_file, false)?;
+        assert_eq!(failed_records.len(), 2);
 
         Ok(())
     }

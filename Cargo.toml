@@ -12,5 +12,5 @@ codegen-units = 1
 
 [dependencies]
 anyhow = "1.*"
-clap = { version = "4.*", features = ["cargo"] }
+clap = { version = "4.*", features = ["derive"] }
 indicatif = "*"
