@@ -2,7 +2,7 @@
 name = "ixv"
 version = "0.0.1"
 edition = "2021"
-description = "A CLI application for verifying intel hex file."
+description = "A CLI application for verifying intel hex file"
 authors = ["Karthik D K <karthikdk1998@gmail.com>"]
 repository = "https://github.com/Karthik-d-k/ixv"
 
