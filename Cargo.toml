@@ -4,6 +4,9 @@ version = "0.0.1"
 edition = "2021"
 description = "A CLI application for verifying intel hex file"
 authors = ["Karthik D K <karthikdk1998@gmail.com>"]
+categories = ["Command line utilities"]
+keywords = ["intel", "hex"]
+license = "MIT OR Apache-2.0"
 repository = "https://github.com/Karthik-d-k/ixv"
 
 [package.metadata.wix]
