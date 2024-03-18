@@ -1,3 +1,6 @@
+[![Crates.io Version](https://img.shields.io/crates/v/ixv)](https://crates.io/crates/ixv) ![Crates.io Total Downloads](https://img.shields.io/crates/d/ixv) ![License](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue)
+-------------
+
 # ixv
 
 :crab: A CLI application for verifying intel hex file.
