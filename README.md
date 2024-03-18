@@ -2,6 +2,11 @@
 
 :crab: A CLI application for verifying intel hex file.
 
+## Install
+
+1. Binaries are placed in the [releases](https://github.com/Karthik-d-k/ixv/releases), you can choose depending on your OS.
+2. Download and extract the binary and you are all set to use the tool.
+
 
 ## Usage
 ```bash
