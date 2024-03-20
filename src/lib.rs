@@ -33,9 +33,27 @@ fn checksum_record(hex_record: &str) -> u8 {
     (sum & 0xFF) as u8
 }
 
-fn verify_checksum_hexfile<P: AsRef<Path>>(
+fn verify_checksum_hexfile_without_progress<P: AsRef<Path>>(
     hex_file: P,
-    use_pb: bool,
+) -> Result<Vec<(usize, String)>> {
+    let mut failed_records: Vec<(usize, String)> = Vec::new();
+
+    let file = File::open(&hex_file)?;
+    let lines = BufReader::new(file).lines();
+
+    for (line_no, hex_record) in lines.enumerate() {
+        let hex_record = hex_record?;
+        let checksum = checksum_record(&hex_record);
+        if checksum != 0u8 {
+            failed_records.push((line_no + 1, hex_record));
+        }
+    }
+
+    Ok(failed_records)
+}
+
+fn verify_checksum_hexfile_with_progress<P: AsRef<Path>>(
+    hex_file: P,
 ) -> Result<Vec<(usize, String)>> {
     let num_lines = count_lines(&hex_file)?;
     let mut failed_records: Vec<(usize, String)> = Vec::new();
@@ -51,14 +69,10 @@ fn verify_checksum_hexfile<P: AsRef<Path>>(
             failed_records.push((line_no + 1, hex_record));
         }
 
-        if use_pb {
-            pb.inc(1)
-        };
+        pb.inc(1)
     }
 
-    if use_pb {
-        pb.finish()
-    };
+    pb.finish();
 
     Ok(failed_records)
 }
@@ -80,9 +94,15 @@ impl fmt::Display for FailedRecordsTable {
 }
 
 pub fn run<P: AsRef<Path>>(hex_file: P, pb: bool) -> Result<()> {
-    let failed_records = verify_checksum_hexfile(hex_file, pb)?;
+    let failed_records: Vec<(usize, String)> = if pb {
+        verify_checksum_hexfile_with_progress(hex_file)?
+    } else {
+        verify_checksum_hexfile_without_progress(hex_file)?
+    };
 
-    if !failed_records.is_empty() {
+    if failed_records.is_empty() {
+        eprintln!("CHECKSUM verification Successfull !!");
+    } else {
         eprintln!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         eprintln!("CHECKSUM mismatch in the following hex records:");
         eprintln!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
@@ -100,11 +120,32 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_eof_hex() -> Result<()> {
+    fn test_hexfile_without_progress() -> Result<()> {
         let hex_file = PathBuf::from(r"./src/test/eof.hex");
 
-        let failed_records = verify_checksum_hexfile(hex_file, false)?;
+        let failed_records = verify_checksum_hexfile_without_progress(hex_file)?;
         assert_eq!(failed_records.len(), 2);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_hexfile_with_progress() -> Result<()> {
+        let hex_file = PathBuf::from(r"./src/test/eof.hex");
+
+        let failed_records = verify_checksum_hexfile_with_progress(hex_file)?;
+        assert_eq!(failed_records.len(), 2);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_hexfile_withandwithout_progress() -> Result<()> {
+        let hex_file = PathBuf::from(r"./src/test/eof.hex");
+
+        let failed_records_with_pb = verify_checksum_hexfile_with_progress(&hex_file)?;
+        let failed_records_without_pb = verify_checksum_hexfile_without_progress(&hex_file)?;
+        assert_eq!(failed_records_with_pb, failed_records_without_pb);
 
         Ok(())
     }
