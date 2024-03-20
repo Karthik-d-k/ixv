@@ -4,7 +4,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
-fn count_lines(path: &Path) -> Result<u64> {
+fn count_lines<P: AsRef<Path>>(path: P) -> Result<u64> {
     let mut lines = BufReader::new(File::open(path)?).lines();
 
     let count = lines.try_fold(0, |acc, line| line.map(|_| acc + 1));
@@ -33,12 +33,15 @@ fn checksum_record(hex_record: &str) -> u8 {
     (sum & 0xFF) as u8
 }
 
-fn verify_checksum_hexfile(hex_file: &Path, use_pb: bool) -> Result<Vec<(usize, String)>> {
-    let num_lines = count_lines(hex_file)?;
+fn verify_checksum_hexfile<P: AsRef<Path>>(
+    hex_file: P,
+    use_pb: bool,
+) -> Result<Vec<(usize, String)>> {
+    let num_lines = count_lines(&hex_file)?;
     let mut failed_records: Vec<(usize, String)> = Vec::new();
     let pb = indicatif::ProgressBar::new(num_lines);
 
-    let file = File::open(hex_file)?;
+    let file = File::open(&hex_file)?;
     let lines = BufReader::new(file).lines();
 
     for (line_no, hex_record) in lines.enumerate() {
@@ -76,7 +79,7 @@ impl fmt::Display for FailedRecordsTable {
     }
 }
 
-pub fn run(hex_file: &Path, pb: bool) -> Result<()> {
+pub fn run<P: AsRef<Path>>(hex_file: P, pb: bool) -> Result<()> {
     let failed_records = verify_checksum_hexfile(hex_file, pb)?;
 
     if !failed_records.is_empty() {
