@@ -103,7 +103,7 @@ mod tests {
     fn test_eof_hex() -> Result<()> {
         let hex_file = PathBuf::from(r"./src/test/eof.hex");
 
-        let failed_records = verify_checksum_hexfile(&hex_file, false)?;
+        let failed_records = verify_checksum_hexfile(hex_file, false)?;
         assert_eq!(failed_records.len(), 2);
 
         Ok(())
