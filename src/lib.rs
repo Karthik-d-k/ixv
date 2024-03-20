@@ -14,7 +14,10 @@ fn count_lines<P: AsRef<Path>>(path: P) -> Result<u64> {
 
 fn checksum_record(hex_record: &str) -> u8 {
     let mut sum: u32 = 0;
-    let strt_idx = hex_record.rfind(':').unwrap() + 1;
+    let strt_idx = hex_record
+        .rfind(':')
+        .expect("[ixv error]: Aborting due to invalid hex record")
+        + 1;
     let (_comment, hex_record) = hex_record.split_at(strt_idx);
 
     // Convert the string into a vector of u8 bytes (in chucks of 2)
