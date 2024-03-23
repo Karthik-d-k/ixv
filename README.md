@@ -3,7 +3,7 @@
 
 # ixv
 
-:crab: A CLI application for verifying intel hex file.
+:crab: A CLI application for verifying intel hex file(s).
 
 ## Install
 
