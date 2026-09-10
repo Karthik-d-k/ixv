@@ -19,17 +19,16 @@ $ cargo install ixv
 
 ## Usage
 ```bash
-$ ixv [OPTIONS] [HEX_FILE]...
+$ ixv [HEX_FILE]...
 ```
 
 **Arguments:**
 ```
-[HEX_FILE]...  Path to one or more hex file(s)
+<HEX_FILE>...  Path to one or more hex file(s)
 ```
 
 **Options:**
 ```
-  -p, --pb       Show progress bar
   -h, --help     Print help
   -V, --version  Print version
 ```
