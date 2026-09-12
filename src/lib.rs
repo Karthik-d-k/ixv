@@ -25,7 +25,7 @@ fn check_record(line: &str) -> Result<u8, String> {
             digits.len()
         ));
     }
-    if digits.len() % 2 != 0 {
+    if !digits.len().is_multiple_of(2) {
         return Err(format!("odd number of hex digits ({})", digits.len()));
     }
 

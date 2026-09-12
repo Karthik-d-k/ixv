@@ -1,11 +1,12 @@
 [package]
 name = "ixv"
-version = "0.0.3"
-edition = "2021"
-description = "A CLI application for verifying intel hex file"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.87"
+description = "Verify Intel HEX files against the Intel Hexadecimal Object File Format spec"
 authors = ["Karthik D K <karthikdk1998@gmail.com>"]
-categories = ["command-line-utilities"]
-keywords = ["intel", "hex"]
+categories = ["command-line-utilities", "embedded", "development-tools"]
+keywords = ["intel-hex", "ihex", "firmware", "checksum", "embedded"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/Karthik-d-k/ixv"
 
@@ -13,8 +14,8 @@ repository = "https://github.com/Karthik-d-k/ixv"
 lto = true
 panic = "abort"
 codegen-units = 1
+strip = true
 
-# The profile that 'cargo dist' will build with
+# The profile that 'dist' will build with
 [profile.dist]
 inherits = "release"
-lto = "thin"
