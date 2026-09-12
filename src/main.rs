@@ -1,23 +1,54 @@
-use clap::Parser;
-use std::{path::PathBuf, process};
+use std::{env, process};
 
-#[derive(Parser)]
-#[command(author, version, about)]
-struct Args {
-    /// Path to one or more hex file(s)
-    #[arg(required = true)]
-    hex_file: Vec<PathBuf>,
-}
+const USAGE: &str = "\
+A CLI application for verifying intel hex file
+
+Usage: ixv <HEX_FILE>
+
+Arguments:
+  <HEX_FILE>  Path to the hex file
+
+Options:
+  -h, --help     Print help
+  -V, --version  Print version";
 
 fn main() {
-    let args = Args::parse();
+    let mut args = env::args_os().skip(1);
+    let hex_file = match args.next() {
+        Some(arg) => arg,
+        None => usage_error("no hex file provided"),
+    };
 
-    for hex_file in args.hex_file {
-        println!("Hex File: {}", hex_file.display());
-        if let Err(e) = ixv::run(hex_file) {
+    if hex_file == "-h" || hex_file == "--help" {
+        println!("{USAGE}");
+        return;
+    }
+    if hex_file == "-V" || hex_file == "--version" {
+        println!("ixv {}", env!("CARGO_PKG_VERSION"));
+        return;
+    }
+
+    let shown = hex_file.to_string_lossy();
+    if shown.starts_with('-') {
+        usage_error(&format!("unknown option '{}'", shown));
+    }
+    if args.next().is_some() {
+        usage_error("expected exactly one hex file");
+    }
+
+    match ixv::run(&hex_file) {
+        Ok(true) => {}
+        Ok(false) => process::exit(1),
+        Err(e) => {
             eprintln!("[ixv error]: {}", e);
 
             process::exit(1);
         }
     }
+}
+
+fn usage_error(reason: &str) -> ! {
+    eprintln!("[ixv error]: {}\n\n{}", reason, USAGE);
+
+    process::exit(2);
 }

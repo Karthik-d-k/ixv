@@ -9,12 +9,6 @@ keywords = ["intel", "hex"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/Karthik-d-k/ixv"
 
-[package.metadata.wix]
-upgrade-guid = "8F380543-5C88-4A2F-AA13-3B4E9645E7DE"
-path-guid = "22AD514F-9AB4-4A6C-9705-E016098FCC56"
-license = false
-eula = false
-
 [profile.release]
 lto = true
 panic = "abort"
@@ -24,10 +18,6 @@ codegen-units = 1
 [profile.dist]
 inherits = "release"
 lto = "thin"
-
-[dependencies]
-anyhow = "1.*"
-clap = { version = "4.*", features = ["derive"] }
 
 # Config for 'cargo dist'
 [workspace.metadata.dist]
