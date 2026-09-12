@@ -1,41 +1,37 @@
 # List commands
-default: clear
+default:
     @just --list
 
-# Clear screen
-clear:
-	clear
-
 # Debug build
-dbuild: clear
+dbuild:
     cargo build
 
 # Release build
-rbuild: clear
+rbuild:
     cargo build --release
 
 # Debug build run
-drun args='': clear
+drun args='':
     cargo run -- {{args}}
 
 # Release build run
-rrun args='': clear
+rrun args='':
     cargo run --release -- {{args}}
 
 # Print library size
-size: clear dbuild rbuild
+size: dbuild rbuild
     @ls -sh ./target/debug/ixv
     @ls -sh ./target/release/ixv
 
 # Run Tests
-test: clear
+test:
 	cargo test --release -- --nocapture
 
 # Clean target
-clean: clear
+clean:
     cargo clean
 
 # Git
-git: clear
+git:
     git status
     git diff
